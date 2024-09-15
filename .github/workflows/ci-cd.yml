@@ -7,6 +7,11 @@ on:
       - dev         # Trigger for development environment
       - staging     # Trigger for staging environment
       - main        # Trigger for production environment
+  pull_request:
+    branches:
+      - dev
+      - staging
+      - main
 
 jobs:
   build:
@@ -19,15 +24,16 @@ jobs:
 
       # Set up the Python environment
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          python-version: '3.12'  # Use the appropriate Python version
 
       # Install dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest  # Ensure pytest is installed
 
       # Run unit tests
       - name: Run Unit Tests
