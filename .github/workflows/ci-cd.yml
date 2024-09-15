@@ -1,55 +1,53 @@
 name: CI/CD Pipeline
 
+# Trigger on push or pull request
 on:
   push:
     branches:
-      - main
-      - development
-      - staging
+      - dev         # Trigger for development environment
+      - staging     # Trigger for staging environment
+      - main        # Trigger for production environment
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
+      # Set up the Python environment
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.x'
 
-      - name: Install dependencies
+      # Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Lint code
-        run: |
-          pylint your_code_directory
+      # Run unit tests
+      - name: Run Unit Tests
+        run: pytest
 
-      - name: Run unit tests
-        run: |
-          pytest
+      # Lint the code
+      - name: Lint Code
+        run: flake8 .
 
-      - name: Build Docker image
-        run: |
-          docker build -t your-image-name .
+      # Deploy to Vercel for development (if pushing to the dev branch)
+      - name: Deploy to Vercel (Development)
+        if: github.ref == 'refs/heads/dev'
+        run: vercel --token ${{ secrets.VERCEL_TOKEN }} --prod
 
-      - name: Push Docker image to DockerHub
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push your-image-name
+      # Deploy to Vercel for staging (if pushing to the staging branch)
+      - name: Deploy to Vercel (Staging)
+        if: github.ref == 'refs/heads/staging'
+        run: vercel --token ${{ secrets.VERCEL_TOKEN }} --prod
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-environment: production
+      # Deploy to Vercel for production (if pushing to the main branch)
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/main'
+        run: vercel --token ${{ secrets.VERCEL_TOKEN }} --prod
