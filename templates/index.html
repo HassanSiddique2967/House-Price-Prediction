@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: auto;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input[type="number"],
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .checkbox-group,
+        .dropdown-group,
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>House Price Prediction</h2>
+        <form id="predictionForm">
+            <label for="bedrooms">Bedrooms:</label>
+            <input type="number" id="bedrooms" name="bedrooms" required>
+
+            <label for="bathrooms">Bathrooms:</label>
+            <input type="number" id="bathrooms" name="bathrooms" required>
+
+            <label for="sqft_living">Sqft Living:</label>
+            <input type="number" id="sqft_living" name="sqft_living" required>
+
+            <label for="sqft_lot">Sqft Lot:</label>
+            <input type="number" id="sqft_lot" name="sqft_lot" required>
+
+            <label for="floors">Floors:</label>
+            <input type="number" id="floors" name="floors" required>
+
+            <label for="condition">Condition:</label>
+            <select id="condition" name="condition" required>
+                <option value="">Select Condition</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="has_above" name="has_above">
+                <label for="has_above">Has Sqft Above:</label>
+            </div>
+
+            <div class="form-group">
+                <label for="sqft_above">Sqft Above:</label>
+                <input type="number" id="sqft_above" name="sqft_above" disabled>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="has_basement" name="has_basement">
+                <label for="has_basement">Has Basement:</label>
+            </div>
+
+            <div class="form-group">
+                <label for="sqft_basement">Sqft Basement:</label>
+                <input type="number" id="sqft_basement" name="sqft_basement" disabled>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="waterfront" name="waterfront">
+                <label for="waterfront">Waterfront</label>
+            </div>
+
+            <label for="view">View:</label>
+            <select id="view" name="view" required>
+                <option value="">Select View</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+
+            <label for="yr_built">Year Built:</label>
+            <input type="number" id="yr_built" name="yr_built" required>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="has_renovated" name="has_renovated">
+                <label for="has_renovated">Been Renovated:</label>
+            </div>
+
+            <div class="form-group">
+                <label for="yr_renovated">Year Renovated:</label>
+                <input type="number" id="yr_renovated" name="yr_renovated" required>
+            </div>
+
+            <button type="submit">Predict Price</button>
+        </form>
+
+        <h3>Predicted Price: <span id="result"></span></h3>
+    </div>
+
+    <script>
+        const sqftAboveInput = document.getElementById('sqft_above');
+        const sqftBasementInput = document.getElementById('sqft_basement');
+        const yrRenovated = document.getElementById('yr_renovated');
+        const hasAboveCheckbox = document.getElementById('has_above');
+        const hasBasementCheckbox = document.getElementById('has_basement');
+        const hasBeenRenovatedCheckbox = document.getElementById('has_renovated');
+
+        hasAboveCheckbox.addEventListener('change', function() {
+            sqftAboveInput.disabled = !this.checked;
+        });
+
+        hasBasementCheckbox.addEventListener('change', function() {
+            sqftBasementInput.disabled = !this.checked;
+        });
+
+        hasBeenRenovatedCheckbox.addEventListener('change', function() {
+            yrRenovated.disabled = !this.checked;
+        });
+
+        const form = document.getElementById('predictionForm');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const formData = {
+                bedrooms: document.getElementById('bedrooms').value,
+                bathrooms: document.getElementById('bathrooms').value,
+                sqft_living: document.getElementById('sqft_living').value,
+                sqft_lot: document.getElementById('sqft_lot').value,
+                floors: document.getElementById('floors').value,
+                condition: document.getElementById('condition').value,
+                view: document.getElementById('view').value,
+                yr_built: document.getElementById('yr_built').value,
+                yr_renovated: hasBeenRenovatedCheckbox.checked ? yrRenovated.value : 0,
+                sqft_above: hasAboveCheckbox.checked ? sqftAboveInput.value : 0,
+                sqft_basement: hasBasementCheckbox.checked ? sqftBasementInput.value : 0,
+                waterfront: document.getElementById('waterfront').checked ? 1 : 0
+            };
+
+            const response = await fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+            document.getElementById('result').textContent = `$${data.predicted_price.toLocaleString()}`;
+        });
+    </script>
+</body>
+</html>
